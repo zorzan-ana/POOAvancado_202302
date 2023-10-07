@@ -6,16 +6,18 @@ import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.edu.atitus.pooavancado.atitusound.entities.ArtistEntity;
 import br.edu.atitus.pooavancado.atitusound.entities.dtos.ArtistDTO;
-import br.edu.atitus.pooavancado.atitusound.repositories.ArtistRepository;
+import br.edu.atitus.pooavancado.atitusound.services.ArtistService;
 
 @RestController
 @RequestMapping("/artists")
@@ -27,11 +29,11 @@ public class ArtistController {
 	
 	//@Autowired >> Spring recomenda utilizar métodos construtores
 	
-	private ArtistRepository artistRepository;
+	private ArtistService artistService;
 	
-	public ArtistController(ArtistRepository artistRepository) {
+	public ArtistController(ArtistService artistService) {
 		super();
-		this.artistRepository = artistRepository;
+		this.artistService = artistService;
 	}
 	
 	protected ArtistEntity convertDTO2Entity(ArtistDTO dto) {
@@ -41,9 +43,36 @@ public class ArtistController {
 		return entidade;
 	}
 	
+	@DeleteMapping("/{uuid}")
+	public ResponseEntity<?> delete(@PathVariable UUID uuid) {
+		try {
+			artistService.deleteById(uuid);
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().header("error", e.getMessage()).build();
+		}
+		return ResponseEntity.ok().build();
+	}
+	
+	@PutMapping("/{uuid}")
+	public ResponseEntity<ArtistEntity> put(@PathVariable UUID uuid, @RequestBody ArtistDTO dto) {
+		ArtistEntity entidade = convertDTO2Entity(dto);
+		entidade.setUuid(uuid);
+		try {
+			artistService.save(entidade);
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().header("error", e.getMessage()).build();
+		}
+		return ResponseEntity.ok(entidade);
+	}
+	
 	@GetMapping("/{uuid}")
 	public ResponseEntity<ArtistEntity> getByUuid(@PathVariable UUID uuid) {
-		Optional<ArtistEntity> entidade = artistRepository.findById(uuid);
+		Optional<ArtistEntity> entidade;
+		try {
+			entidade = artistService.findById(uuid);
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().header("error", e.getMessage()).build();
+		}
 		if (entidade.isEmpty())
 			return ResponseEntity.notFound().build();
 		else
@@ -52,14 +81,23 @@ public class ArtistController {
 	
 	@GetMapping
 	public ResponseEntity<List<ArtistEntity>> getAll() {
-		List<ArtistEntity> entidades = artistRepository.findAll();
+		List<ArtistEntity> entidades;
+		try {
+			entidades = artistService.findAll();
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().header("error", e.getMessage()).build();
+		}
 		return ResponseEntity.ok(entidades);
 	}
 
 	@PostMapping
 	public ResponseEntity<ArtistEntity> save(@RequestBody ArtistDTO dto) {
 		ArtistEntity entidade = convertDTO2Entity(dto);
-		artistRepository.save(entidade);
+		try {
+			artistService.save(entidade);
+		} catch (Exception e) {
+			return ResponseEntity.badRequest().header("error", e.getMessage()).build();
+		}
 		return ResponseEntity.status(HttpStatus.CREATED).body(entidade);
 	}
 
