@@ -23,10 +23,11 @@ import org.springframework.web.bind.annotation.RestController;
 import br.edu.atitus.pooavancado.atitusound.entities.ArtistEntity;
 import br.edu.atitus.pooavancado.atitusound.entities.dtos.ArtistDTO;
 import br.edu.atitus.pooavancado.atitusound.services.ArtistService;
+import br.edu.atitus.pooavancado.atitusound.services.GenericService;
 
 @RestController
 @RequestMapping("/artists")
-public class ArtistController {
+public class ArtistController extends GenericController<ArtistEntity, ArtistDTO>{
 	
 	//Spring, Injeção de Dependências
 	//Aqui o Spring Framework é responsável pela implementação, 
@@ -47,64 +48,10 @@ public class ArtistController {
 		entidade.setImage(dto.getImage());
 		return entidade;
 	}
-	
-	@DeleteMapping("/{uuid}")
-	public ResponseEntity<?> delete(@PathVariable UUID uuid) {
-		try {
-			artistService.deleteById(uuid);
-		} catch (Exception e) {
-			return ResponseEntity.badRequest().header("error", e.getMessage()).build();
-		}
-		return ResponseEntity.ok().build();
-	}
-	
-	@PutMapping("/{uuid}")
-	public ResponseEntity<ArtistEntity> put(@PathVariable UUID uuid, @RequestBody ArtistDTO dto) {
-		ArtistEntity entidade = convertDTO2Entity(dto);
-		entidade.setUuid(uuid);
-		try {
-			artistService.save(entidade);
-		} catch (Exception e) {
-			return ResponseEntity.badRequest().header("error", e.getMessage()).build();
-		}
-		return ResponseEntity.ok(entidade);
-	}
-	
-	@GetMapping("/{uuid}")
-	public ResponseEntity<ArtistEntity> getByUuid(@PathVariable UUID uuid) {
-		Optional<ArtistEntity> entidade;
-		try {
-			entidade = artistService.findById(uuid);
-		} catch (Exception e) {
-			return ResponseEntity.badRequest().header("error", e.getMessage()).build();
-		}
-		if (entidade.isEmpty())
-			return ResponseEntity.notFound().build();
-		else
-			return ResponseEntity.ok(entidade.get());
-	}
-	
-	@GetMapping
-	public ResponseEntity<Page<List<ArtistEntity>>> getAll(@PageableDefault(page = 0, size = 10, sort = "name", direction = Direction.ASC) Pageable pageable,
-							@RequestParam String name) {
-		Page<List<ArtistEntity>> entidades;
-		try {
-			entidades = artistService.findByNameContainingIgnoreCase(pageable, name);
-		} catch (Exception e) {
-			return ResponseEntity.badRequest().header("error", e.getMessage()).build();
-		}
-		return ResponseEntity.ok(entidades);
-	}
 
-	@PostMapping
-	public ResponseEntity<ArtistEntity> save(@RequestBody ArtistDTO dto) {
-		ArtistEntity entidade = convertDTO2Entity(dto);
-		try {
-			artistService.save(entidade);
-		} catch (Exception e) {
-			return ResponseEntity.badRequest().header("error", e.getMessage()).build();
-		}
-		return ResponseEntity.status(HttpStatus.CREATED).body(entidade);
+	@Override
+	GenericService<ArtistEntity> getService() {
+		return artistService;
 	}
 
 }
