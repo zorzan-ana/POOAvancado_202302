@@ -3,6 +3,7 @@ package br.edu.atitus.pooavancado.atitusound.controllers;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.edu.atitus.pooavancado.atitusound.entities.ArtistEntity;
 import br.edu.atitus.pooavancado.atitusound.entities.MusicEntity;
 import br.edu.atitus.pooavancado.atitusound.entities.dtos.MusicDTO;
 import br.edu.atitus.pooavancado.atitusound.services.GenericService;
@@ -29,6 +30,10 @@ public class MusicController extends GenericController<MusicEntity, MusicDTO>{
 		MusicEntity entidade = new MusicEntity();
 		entidade.setDuration(dto.getDuration());
 		entidade.setName(dto.getName());
+		entidade.setUrl(dto.getUrl());
+		ArtistEntity entidadeArtista = new ArtistEntity();
+		entidadeArtista.setUuid(dto.getArtist().getUuid());
+		entidade.setArtist(entidadeArtista);
 		return entidade;
 	}
 
